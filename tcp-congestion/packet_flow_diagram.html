@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #eee;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: #16213e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-width: 900px;
+        }
+        h1 {
+            text-align: center;
+            color: #4ecca3;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .diagram {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .box {
+            background: #0f3460;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            min-width: 100px;
+            position: sticky;
+            top: 20px;
+        }
+        .sender { border: 2px solid #4ecca3; color: #4ecca3; }
+        .receiver { border: 2px solid #3498db; color: #3498db; }
+        .packets {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px 0;
+        }
+        .packet {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .packet-line {
+            flex: 1;
+            height: 2px;
+            background: #4ecca3;
+            position: relative;
+        }
+        .packet-line.ack {
+            background: #3498db;
+        }
+        .packet-line.lost {
+            background: linear-gradient(90deg, #e74c3c 60%, transparent 60%);
+        }
+        .arrow-right::after {
+            content: '▶';
+            color: #4ecca3;
+            position: absolute;
+            right: -8px;
+            top: -8px;
+        }
+        .arrow-left::before {
+            content: '◀';
+            color: #3498db;
+            position: absolute;
+            left: -8px;
+            top: -8px;
+        }
+        .label {
+            font-size: 11px;
+            min-width: 70px;
+        }
+        .label.right { text-align: right; color: #4ecca3; }
+        .label.left { text-align: left; color: #3498db; }
+        .event {
+            text-align: center;
+            padding: 8px 15px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .grow { background: rgba(78, 204, 163, 0.2); color: #4ecca3; }
+        .shrink { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .lost-marker {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 70px;
+        }
+        .phase {
+            text-align: center;
+            padding: 5px 15px;
+            margin: 10px 0;
+            font-size: 11px;
+            color: #888;
+            border-left: 3px solid #444;
+            border-right: 3px solid #444;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #0f3460;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .window-viz {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .window-block {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .active { background: #4ecca3; color: #1a1a2e; }
+        .lost-block { background: #e74c3c; color: white; }
+        .arrow-between {
+            color: #666;
+            font-size: 16px;
+        }
+        .sawtooth {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0a0a15;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #4ecca3;
+            white-space: pre;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TCP Congestion Control: Packet Flow</h1>
+
+        <div class="diagram">
+            <div class="box sender">SENDER</div>
+
+            <div class="packets">
+                <div class="phase">── SLOW START: Window doubles each round ──</div>
+
+                <div class="packet">
+                    <span class="label right">packet 1</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right"></span>
+                    <div class="packet-line ack arrow-left"></div>
+                    <span class="label left">ACK</span>
+                </div>
+                <div class="event grow">✓ Window: 1 → 2</div>
+
+                <div class="packet">
+                    <span class="label right">packet 2</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 3</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right"></span>
+                    <div class="packet-line ack arrow-left"></div>
+                    <span class="label left">ACK ACK</span>
+                </div>
+                <div class="event grow">✓ Window: 2 → 4</div>
+
+                <div class="packet">
+                    <span class="label right">packet 4</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 5</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 6</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 7</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right"></span>
+                    <div class="packet-line ack arrow-left"></div>
+                    <span class="label left">ACK x4</span>
+                </div>
+                <div class="event grow">✓ Window: 4 → 8</div>
+
+                <div class="packet">
+                    <span class="label right">packet 8</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 9</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 10</span>
+                    <div class="packet-line lost"></div>
+                    <span class="lost-marker">✗ LOST!</span>
+                </div>
+                <div class="event shrink">✗ PACKET LOST! Window: 8 → 4 (cut in half)</div>
+
+                <div class="phase">── RECOVERY: Growing again carefully ──</div>
+
+                <div class="packet">
+                    <span class="label right">packet 10</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left">(retransmit)</span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 11</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 12</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right">packet 13</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right"></span>
+                    <div class="packet-line ack arrow-left"></div>
+                    <span class="label left">ACK x4</span>
+                </div>
+                <div class="event grow">✓ Window: 4 → 5 → 6 → 7 → 8</div>
+
+                <div class="packet">
+                    <span class="label right">packets...</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="packet">
+                    <span class="label right"></span>
+                    <div class="packet-line ack arrow-left"></div>
+                    <span class="label left">ACKs...</span>
+                </div>
+                <div class="event grow">✓ Window: 8 → 12</div>
+
+                <div class="packet">
+                    <span class="label right">packet 25</span>
+                    <div class="packet-line lost"></div>
+                    <span class="lost-marker">✗ LOST!</span>
+                </div>
+                <div class="event shrink">✗ PACKET LOST! Window: 12 → 6 (cut in half)</div>
+
+                <div class="phase">── Pattern repeats forever... ──</div>
+
+                <div class="packet">
+                    <span class="label right">packets...</span>
+                    <div class="packet-line arrow-right"></div>
+                    <span class="label left"></span>
+                </div>
+                <div class="event grow">✓ Window: 6 → 10</div>
+
+                <div class="packet">
+                    <span class="label right">packet 38</span>
+                    <div class="packet-line lost"></div>
+                    <span class="lost-marker">✗ LOST!</span>
+                </div>
+                <div class="event shrink">✗ PACKET LOST! Window: 10 → 5 (cut in half)</div>
+
+            </div>
+
+            <div class="box receiver">RECEIVER</div>
+        </div>
+
+        <div class="summary">
+            <div><strong>The "Sawtooth" Pattern:</strong></div>
+            <div class="sawtooth">
+     12 │            ╱╲
+        │           ╱  ╲
+      8 │    ╱╲    ╱    ╲        ╱╲
+        │   ╱  ╲  ╱      ╲      ╱  ╲
+      4 │  ╱    ╲╱        ╲    ╱    ╲
+        │ ╱                ╲  ╱      ╲
+      1 │╱                  ╲╱        ╲
+        └─────────────────────────────────▶
+              ↑         ↑         ↑
+            loss      loss      loss</div>
+            <div style="margin-top: 15px; color: #888; font-size: 13px;">
+                <span style="color: #4ecca3;">■</span> ACK received = window grows &nbsp;&nbsp;|&nbsp;&nbsp;
+                <span style="color: #e74c3c;">■</span> Packet lost = window cut in half
+            </div>
+        </div>
+    </div>
+</body>
+</html>

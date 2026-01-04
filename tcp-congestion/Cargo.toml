@@ -1,0 +1,9 @@
+[package]
+name = "tcp-congestion"
+version = "0.1.0"
+edition = "2021"
+description = "Animated TUI visualization of TCP congestion control algorithms"
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
