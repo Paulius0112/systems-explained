@@ -1,29 +1,18 @@
 # TCP Congestion Control Visualization
 
-Animated TUI visualization of TCP congestion control algorithms (Reno-style).
+Animated TUI visualization of TCP congestion control - watch the "sawtooth" pattern emerge.
+
+![Demo](demo.gif)
 
 ## Overview
 
-This tool visualizes TCP's congestion control mechanism in real-time:
+TCP congestion control has one variable and two rules:
 
-| Phase | Description | cwnd Growth |
-|-------|-------------|-------------|
-| **Slow Start** | Initial phase, aggressive growth | Exponential (+1 per ACK) |
-| **Congestion Avoidance** | After ssthresh, conservative growth | Linear (+1/cwnd per ACK) |
-| **Fast Recovery** | After triple duplicate ACK | Halve cwnd, skip slow start |
+**The variable:** Congestion Window (cwnd) - how many packets can be "in flight"
 
-## Features
-
-- Real-time cwnd (congestion window) graph
-- ssthresh (slow start threshold) visualization
-- Animated packet flow between sender and receiver
-- Packet loss simulation with retransmission
-- Event log showing ACKs, losses, and phase changes
-- Statistics tracking (sent, acked, lost, retransmits)
-
-## Requirements
-
-- Rust 1.70+
+**The rules:**
+- ACK received → window grows
+- Packet lost → window cut in half
 
 ## Usage
 
@@ -36,43 +25,20 @@ cargo run --release
 - `q` or `Esc` - Quit
 - `r` - Reset simulation
 
-## How It Works
+## The Phases
 
-The visualization shows:
+| Phase | What happens | Window growth |
+|-------|--------------|---------------|
+| **Slow Start** | Finding network capacity | Doubles each round (1→2→4→8→16) |
+| **Congestion Avoidance** | Being careful near limit | +1 per round (16→17→18→19) |
+| **Recovery** | Packet lost! | Cut in half (16→8) |
 
-1. **Graph Panel**: cwnd over time with ssthresh line
-   - Green = Slow Start (exponential growth)
-   - Cyan = Congestion Avoidance (linear growth)
-   - Yellow = Fast Recovery
-   - Red line = ssthresh threshold
+## Recording
 
-2. **Packet Animation**: Packets traveling from sender to receiver
-   - Blue dots = Normal packets
-   - Yellow = Retransmitted packets
-   - Red X = Lost packets
+To record a new demo GIF:
 
-3. **Statistics**: Packet counts and loss rate
-
-4. **Events**: Real-time log of network events
-
-## TCP Congestion Control Algorithm
-
-```
-On ACK received:
-  if cwnd < ssthresh:
-    cwnd += 1              # Slow Start: exponential
-  else:
-    cwnd += 1/cwnd         # Congestion Avoidance: linear
-
-On packet loss (timeout):
-  ssthresh = cwnd / 2
-  cwnd = 1                 # Reset to slow start
-
-On triple duplicate ACK:
-  ssthresh = cwnd / 2
-  cwnd = ssthresh + 3      # Fast Recovery
+```bash
+./record.sh
 ```
 
-## License
-
-MIT
+Requires [asciinema](https://asciinema.org/) and [agg](https://github.com/asciinema/agg).
